@@ -1,0 +1,3 @@
+CREATE TABLE foo(
+    foo_id SERIAL PRIMARY KEY
+);
