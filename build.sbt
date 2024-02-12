@@ -4,7 +4,7 @@ ThisBuild / organization := "com.strad"
 ThisBuild / scalaVersion := "3.3.1"
 ThisBuild / versionScheme := Some("semver-spec")
 val catsEffectVersion = "3.5.2"
-val doobieVersion = "1.0.0-RC1"
+val doobieVersion = "1.0.0-RC5"
 val loggingVersion = "0.19.0"
 
 lazy val root = (project in file("."))
