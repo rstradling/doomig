@@ -3,27 +3,14 @@ package com.strad.doomig.integration.service
 import cats.effect.*
 import cats.implicits.*
 import com.strad.doomig.domain.Migration
+import com.strad.doomig.db.*
 import com.strad.doomig.service.VersionStampDbService
-import doobie.Transactor
-import doobie.hikari.HikariTransactor
-import doobie.util.ExecutionContexts
+import java.time.Instant
 import munit.CatsEffectSuite
 
-import java.time.Instant
-
+/** Must specify the following environment variables DB_USER DB_PASSWORD DB_DRIVER DB_URL
+  */
 class VersionStampDbServiceSpec extends CatsEffectSuite:
-  def mkDbConnection(
-    host: String,
-    port: String,
-    database: String,
-    user: String,
-    password: String
-  ): Resource[IO, Transactor[IO]] =
-    for
-      ce <- ExecutionContexts.fixedThreadPool[IO](5)
-      url = s"jdbc:postgresql://${host}:${port}/${database}"
-      xa <- HikariTransactor.newHikariTransactor[IO]("org.postgresql.Driver", url, user, password, ce)
-    yield xa
   test("CRUD operations work as intended"):
     def run[A](tableName: String)(fn: String => IO[A]): A =
       (for res <- Resource.eval(fn(tableName))
@@ -32,7 +19,8 @@ class VersionStampDbServiceSpec extends CatsEffectSuite:
       (for res <- Resource.eval(fn(tableName, migration))
       yield res).allocated.unsafeRunSync()._1
 
-    val repo = mkDbConnection("localhost", "5432", "testing", "admin", "test123")
+    val repo = Db
+      .getConnectionFromEnv()
       .map(VersionStampDbService[IO](_))
       .allocated
       .unsafeRunSync()

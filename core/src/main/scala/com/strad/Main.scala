@@ -12,6 +12,7 @@ object Main extends IOApp:
   // This is your new "main"!
   def run(args: List[String]): IO[ExitCode] =
     val conf = new Conf(args)
+      
     /* conf.direction.getOrElse(throw new RuntimeException("Must specify a direction")) match
       case MigrationService.Direction.Up =>
 
