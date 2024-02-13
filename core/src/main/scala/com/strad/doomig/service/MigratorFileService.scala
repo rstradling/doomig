@@ -3,21 +3,29 @@ package com.strad.doomig.service
 import cats.*
 import cats.effect.Async
 import cats.implicits.*
-import com.strad.doomig.domain.{Migration, MigrationAction}
-import doobie.Update0
+import com.strad.doomig.db.VersionStampRepo
+import com.strad.doomig.domain.Svc
 import doobie.implicits.*
+import doobie.util.fragment.Fragment
 import doobie.util.transactor.Transactor
 
-class MigratorFileService extends Migrator[String]:
+object MigratorFileService:
 
-  def down(migration: Migration[String]): MigrationAction[String] = ???
-
-  def up(migration: Migration[String]): MigrationAction[String] = ???
-  def run[F[_]](transactor: Transactor[F], l: List[Update0])(using a: Async[F]): F[List[Int]] =
-    l.traverse(_.run.transact(transactor))
-
-// def mkUpMigrationList[A](items : List[Migration[A]])(using a: Order[A]): List[Update0] =
-//     items.sortWith(_.migrationId < _.migrationId).foldLeft(List.empty[Update0])((acc, x) => acc ++ x.up)
-
-// def mkDownMigrationList[A](items: List[Migration[A]])(using a: Order[A]): List[Update0] =
-//   items.sortWith(_.migrationId > _.migrationId).foldLeft(List.empty[Update0])((acc, x) => acc ++ x.down)
+  def run[F[_]](
+    db: Transactor[F],
+    versionRepo: VersionStampRepo[F],
+    tableName: String,
+    dir: String,
+    l: List[Svc.Migration]
+  )(using
+    a: Async[F]
+  ): F[List[Int]] =
+    l.traverse { x =>
+      // TODO: FIX RESOURCE LEAK
+      val sql = scala.io.Source.fromFile(dir + "/" + x.name).mkString
+      val fr = Fragment.const(sql)
+      for
+        t <- fr.update.run.transact(db)
+        res <- versionRepo.writeVersion(tableName, x)
+      yield res
+    }

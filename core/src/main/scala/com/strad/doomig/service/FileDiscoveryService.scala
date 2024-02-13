@@ -1,19 +1,90 @@
 package com.strad.doomig.service
 
+import cats.*
+import cats.implicits.*
+import cats.syntax.*
 import cats.effect.Async
+import com.strad.doomig.domain.Svc
+import com.strad.doomig.service.Migrator.Direction
+import com.strad.doomig.service.Migrator.Direction.{Down, Up}
 import fs2.io.file.{Files, Path}
 
+import java.time.Instant
 import scala.util.matching.compat.Regex
 
 object FileDiscoveryService:
-  val defaultUpRegEx: Regex = """(?<version>\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2})_up-(?<desc>.*)\.sql""".r
-  val defaultDownRegEx: Regex = """(?<version>\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2})_down-(?<desc>.*)\.sql""".r
+  val UpRegEx: Regex = """(?<version>\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2})_up-(?<desc>.*)\.sql""".r
+  val DownRegEx: Regex = """(?<version>\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2})_down-(?<desc>.*)\.sql""".r
 
-  def createMigrationFiles[F[_]: Files: Async](path: Path, regex: Regex): fs2.Stream[F, Path] =
+  def createMigrationFilesList[F[_]: Files: Async](
+    path: Path,
+    regex: Regex,
+    lastRanMigration: Option[Svc.Migration],
+    destinationVersion: Option[String],
+    direction: Direction
+  ): F[List[Svc.Migration]] =
     val filter = regexFilter(regex)
-    Files[F].walk(path).filter(filter)
+    val window = lastRunFilter(lastRanMigration, destinationVersion, direction)
+    val v = Files[F]
+      .walk(path)
+      .filter(filter)
+      .map { x =>
+        val fileName = x.names.last.toString
+        regex.findFirstMatchIn(fileName) match
+          case Some(a) =>
+            val version = a.group("version")
+            val desc = a.group("desc")
+            Svc.Migration(version, fileName, desc)
+          case None =>
+            // TODO: Raise error vs throwing error
+            throw new RuntimeException("")
+          /*Async[F].raiseError(
+              new RuntimeException("We have filtered all the values already so this should always match")
+            )*/
+      }
+      .filter(window)
+      .compile
+      .toVector
+    v.map(items =>
+      direction match
+        case Down => items.sortWith(_.version > _.version).toList
+        case Up   => items.sortWith(_.version < _.version).toList
+    )
 
+  private def lastRunFilter(
+    lastRanMigration: Option[Svc.Migration],
+    destinationVersion: Option[String],
+    direction: Direction
+  )(p: Svc.Migration) =
+    (lastRanMigration, destinationVersion) match
+      case (None, None) => true
+      case (Some(dbVersion), Some(expectedVersion)) =>
+        direction match
+          case Down =>
+            if p.version <= dbVersion.version && p.version > expectedVersion then true
+            else false
+          case Up =>
+            if p.version > dbVersion.version && p.version <= expectedVersion then true
+            else false
+      case (Some(dbVersion), None) =>
+        direction match
+          case Down =>
+            if p.version <= dbVersion.version then true
+            else false
+          case Up =>
+            if p.version > dbVersion.version then true
+            else false
+      case (None, Some(expectedVersion)) =>
+        direction match
+          case Down =>
+            if p.version > expectedVersion then true
+            else false
+          case Up =>
+            if p.version <= expectedVersion then true
+            else false
   private def regexFilter(regex: Regex)(p: Path) =
-    regex.findFirstMatchIn(p.fileName.toString) match
+    val fileName = p.names.last.toString
+    regex.findFirstMatchIn(fileName) match
       case Some(_) => true
       case None    => false
+end FileDiscoveryService

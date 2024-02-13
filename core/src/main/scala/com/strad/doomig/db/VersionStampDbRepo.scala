@@ -1,17 +1,19 @@
-package com.strad.doomig.service
+package com.strad.doomig.db
 
 import cats.*
 import cats.effect.*
 import cats.implicits.*
-import com.strad.doomig.domain.Migration
-import doobie.util.transactor.Transactor
+import com.strad.doomig.domain.{Svc, Dao}
 import doobie.*
 import doobie.implicits.*
 import doobie.postgres.implicits.*
+import doobie.util.transactor.Transactor
 
-object VersionStampDbService:
-  def apply[F[_]: Async](db: Transactor[F]): VersionStampService[F, String] =
-    new VersionStampService[F, String]:
+import java.time.Instant
+
+object VersionStampDbRepo:
+  def apply[F[_]: Async](db: Transactor[F]): VersionStampRepo[F] =
+    new VersionStampRepo[F]:
       override def doesTableExist(tableName: String): F[Boolean] =
         sql"""SELECT EXISTS (
                    SELECT *
@@ -23,13 +25,13 @@ object VersionStampDbService:
           .map(_.getOrElse(false))
           .transact(db)
 
-      override def dropTable(tableName: String): F[Int] =
+      override def dropTableIfExists(tableName: String): F[Int] =
         val s = s"""DROP TABLE IF EXISTS $tableName;"""
         Update[Unit](s, None).toUpdate0(()).run.transact(db)
 
-      override def createTable(tableName: String): F[Int] =
+      override def createTableIfNotExist(tableName: String): F[Int] =
         val s =
-          s"""CREATE TABLE $tableName (
+          s"""CREATE TABLE IF NOT EXISTS $tableName (
              version varchar(100) PRIMARY KEY,
              name varchar(250),
              description varchar(250),
@@ -38,20 +40,20 @@ object VersionStampDbService:
 
         Update[Unit](s, None).toUpdate0(()).run.transact(db)
 
-      override def fetchCurrentVersion(tableName: String): F[Option[Migration[String]]] =
+      override def fetchCurrentVersion(tableName: String): F[Option[Dao.Migration]] =
         val exists = doesTableExist(tableName)
         exists.flatMap { e =>
           if e then
             val select = fr"""SELECT version, name, description, modified_date FROM""" ++ Fragment.const(tableName)
             select
-              .query[Migration[String]]
+              .query[Dao.Migration]
               .option
               .transact(db)
           else Async[F].pure(None)
         }
 
-      override def writeVersion(tableName: String, migration: Migration[String]): F[Int] =
+      override def writeVersion(tableName: String, migration: Svc.Migration): F[Int] =
         val s = fr"""INSERT INTO""" ++ Fragment.const(tableName)
         val v =
-          fr"""VALUES (${migration.version}, ${migration.name}, ${migration.description}, ${migration.modifiedDate});"""
+          fr"""VALUES (${migration.version}, ${migration.name}, ${migration.description}, ${Instant.now});"""
         (s ++ v).update.run.transact(db)

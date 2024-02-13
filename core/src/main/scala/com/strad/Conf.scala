@@ -20,9 +20,10 @@ class Conf(arguments: List[String]) extends ScallopConf(arguments):
   }
   val direction: ScallopOption[Migrator.Direction] = trailArg[Migrator.Direction](required = true)(directionConverter)
   val folder: ScallopOption[String] = opt[String](required = true)
-  val upRegex: ScallopOption[Regex] =
-    opt[Regex](required = false, default = FileDiscoveryService.defaultUpRegEx.some)(regexConverter)
-  val downRegex: ScallopOption[Regex] =
-    opt[Regex](required = false, default = FileDiscoveryService.defaultDownRegEx.some)(regexConverter)
-  val destinationId: ScallopOption[String] = opt[String](required = false)
+  val destinationVersion: ScallopOption[String] = opt[String](required = false)
+  val dbTableName: ScallopOption[String] = opt[String](required = true, default = "doomig_version".some)
+  val dbUrl: ScallopOption[String] = opt[String](required = true)
+  val dbUser: ScallopOption[String] = opt[String](required = true)
+  val dbPassword: ScallopOption[String] = opt[String](required = true)
+  val dbDriver: ScallopOption[String] = opt[String](required = true, default = "org.postgresql.Driver".some)
   verify()
