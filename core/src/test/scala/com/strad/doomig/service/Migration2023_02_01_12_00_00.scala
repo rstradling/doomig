@@ -4,9 +4,11 @@ import com.strad.doomig.domain.{Migration, MigrationAction}
 import doobie.Update0
 import doobie.implicits.*
 
+import java.time.Instant
+
 object Migration2023_02_01_12_00_00 extends Migrator[String]:
   override def up(migration: Migration[String]): MigrationAction[String] =
-    MigrationAction(migration.version, migration.name, migration.description, sql"""CREATE TABLE FOO();""".update)
+    MigrationAction(migration.version, migration.name, migration.description, sql"""CREATE TABLE FOO();""".update, Instant.now())
 
   override def down(migration: Migration[String]): MigrationAction[String] =
-    MigrationAction(migration.version, migration.name, migration.description, sql"""DROP TABLE FOO;""".update)
+    MigrationAction(migration.version, migration.name, migration.description, sql"""DROP TABLE FOO;""".update, Instant.now())

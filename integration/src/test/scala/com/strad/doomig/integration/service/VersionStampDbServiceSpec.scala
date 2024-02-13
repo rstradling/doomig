@@ -3,12 +3,13 @@ package com.strad.doomig.integration.service
 import cats.effect.*
 import cats.implicits.*
 import com.strad.doomig.domain.Migration
-import com.strad.doomig.service.{VersionStampDbService, VersionStampService}
+import com.strad.doomig.service.VersionStampDbService
 import doobie.Transactor
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
-import fs2.Stream
 import munit.CatsEffectSuite
+
+import java.time.Instant
 
 class VersionStampDbServiceSpec extends CatsEffectSuite:
   def mkDbConnection(
@@ -37,11 +38,12 @@ class VersionStampDbServiceSpec extends CatsEffectSuite:
       .unsafeRunSync()
       ._1
     run("foo")(repo.dropTable)
+    val time = Instant.now()
     assertEquals(run("foo")(repo.doesTableExist), false)
     assertEquals(run("foo")(repo.createTable), 0)
     assertEquals(run("foo")(repo.doesTableExist), true)
-    val migration = Migration[String]("100", "Testing", "Testing code")
-    assertEquals(run2[Int]("foo", Migration[String]("100", "Testing", "Testing code"))(repo.writeVersion), 1)
+    val migration = Migration[String]("100", "Testing", "Testing code", time)
+    assertEquals(run2[Int]("foo", migration)(repo.writeVersion), 1)
     assertEquals(run("foo")(repo.fetchCurrentVersion), migration.some)
     assertEquals(run("foo")(repo.dropTable), 0)
     assertEquals(run("foo")(repo.fetchCurrentVersion), None)

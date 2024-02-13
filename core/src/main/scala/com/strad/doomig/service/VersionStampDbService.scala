@@ -7,6 +7,7 @@ import com.strad.doomig.domain.Migration
 import doobie.util.transactor.Transactor
 import doobie.*
 import doobie.implicits.*
+import doobie.postgres.implicits.*
 
 object VersionStampDbService:
   def apply[F[_]: Async](db: Transactor[F]): VersionStampService[F, String] =
@@ -31,7 +32,8 @@ object VersionStampDbService:
           s"""CREATE TABLE $tableName (
              version varchar(100) PRIMARY KEY,
              name varchar(250),
-             description varchar(250));
+             description varchar(250),
+             modified_date timestamp with time zone);
              """
 
         Update[Unit](s, None).toUpdate0(()).run.transact(db)
@@ -40,7 +42,7 @@ object VersionStampDbService:
         val exists = doesTableExist(tableName)
         exists.flatMap { e =>
           if e then
-            val select = fr"""SELECT version, name, description FROM""" ++ Fragment.const(tableName)
+            val select = fr"""SELECT version, name, description, modified_date FROM""" ++ Fragment.const(tableName)
             select
               .query[Migration[String]]
               .option
@@ -50,5 +52,6 @@ object VersionStampDbService:
 
       override def writeVersion(tableName: String, migration: Migration[String]): F[Int] =
         val s = fr"""INSERT INTO""" ++ Fragment.const(tableName)
-        val v = fr"""VALUES (${migration.version}, ${migration.name}, ${migration.description});"""
+        val v =
+          fr"""VALUES (${migration.version}, ${migration.name}, ${migration.description}, ${migration.modifiedDate});"""
         (s ++ v).update.run.transact(db)
