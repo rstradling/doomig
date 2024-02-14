@@ -26,4 +26,5 @@ class Conf(arguments: List[String]) extends ScallopConf(arguments):
   val dbUser: ScallopOption[String] = opt[String](required = true)
   val dbPassword: ScallopOption[String] = opt[String](required = true)
   val dbDriver: ScallopOption[String] = opt[String](required = true, default = "org.postgresql.Driver".some)
+  val dryRun: ScallopOption[Boolean] = opt[Boolean](required = false, default = true.some)
   verify()

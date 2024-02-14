@@ -8,7 +8,6 @@ import com.strad.doomig.service.Migrator.Direction
 import com.strad.doomig.service.Migrator.Direction.{Down, Up}
 import fs2.io.file.{Files, Path}
 
-import java.time.Instant
 import scala.util.matching.Regex
 
 object FileDiscoveryService:

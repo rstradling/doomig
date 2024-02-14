@@ -9,6 +9,7 @@ import com.strad.doomig.domain.Svc
 import com.strad.doomig.logging.DoobieLogger
 import com.strad.doomig.service.Migrator.Direction
 import com.strad.doomig.service.Migrator.Direction.{Down, Up}
+import doobie.*
 import doobie.implicits.*
 import doobie.util.fragment.Fragment
 import doobie.util.transactor.Transactor
@@ -22,10 +23,13 @@ object MigratorFileService:
     tableName: String,
     directory: String,
     l: List[Svc.Migration],
-    direction: Direction
+    direction: Direction,
+    dryRun: Boolean
   )(using
     a: Async[F]
   ): Resource[F, List[Int]] =
+    val y = db.yolo
+    import y.*
     val readAll = (fileName: String) =>
       for file <- Resource.make[F, BufferedSource](Async[F].blocking(scala.io.Source.fromFile(fileName)))(s =>
           Async[F].blocking(s.close())
@@ -35,9 +39,15 @@ object MigratorFileService:
       for
         sql <- readAll(directory + "/" + x.name)
         fr = Fragment.const(sql)
-        t <- Resource.eval(fr.update.run.transact(db))
-        res <- direction match
-          case Up   => Resource.eval(versionRepo.writeVersion(tableName, x))
-          case Down => Resource.eval(versionRepo.deleteVersion(tableName, x.version))
+        update = fr.update
+        res <-
+          if dryRun then Resource.eval(update.check.map(x => 1))
+          else
+            for
+              t <- Resource.eval(update.run.transact(db))
+              res <- direction match
+                case Up   => Resource.eval(versionRepo.writeVersion(tableName, x))
+                case Down => Resource.eval(versionRepo.deleteVersion(tableName, x.version))
+            yield res
       yield res
     }

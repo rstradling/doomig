@@ -28,6 +28,7 @@ object Main extends IOApp:
     )
     val tableName = conf.dbTableName.getOrElse("Table Name was not specified")
     val direction = conf.direction.getOrElse(throw new RuntimeException("Unable to find a direction"))
+    val dryRun = conf.dryRun.toOption.get
     val regex = direction match
       case Direction.Up =>
         FileDiscoveryService.UpRegEx
@@ -58,11 +59,20 @@ object Main extends IOApp:
       _ <- Resource.eval(
         migrationFiles.traverse(x => IO.delay(println(s"   version: ${x.version} name: ${x.name}")))
       )
-      res <- MigratorFileService.run(db, repo, tableName, conf.folder.toOption.get, migrationFiles, direction)
+      res <- MigratorFileService.run(
+        db,
+        repo,
+        tableName,
+        conf.folder.toOption.get,
+        migrationFiles,
+        direction,
+        dryRun
+      )
     yield res
     ret.use { x =>
       val ok = x.filter(_ != 1).isEmpty
       if ok then IO.pure(ExitCode.Success)
       else IO.pure(ExitCode.Error)
     }
+  end run
 end Main
