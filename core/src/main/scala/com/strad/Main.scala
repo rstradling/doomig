@@ -50,10 +50,15 @@ object Main extends IOApp:
             direction
           )
       )
+      _ <- Resource.eval(
+        migrationFiles.traverse(x =>
+          logger.info(s"will run the following migrations version: ${x.version} name: ${x.name}")
+        )
+      )
       res <- MigratorFileService.run(db, repo, tableName, conf.folder.toOption.get, migrationFiles, direction)
     yield res
     ret.use { x =>
-      val ok = x.filter(_ != 0).isEmpty
+      val ok = x.filter(_ != 1).isEmpty
       if ok then IO.pure(ExitCode.Success)
       else IO.pure(ExitCode.Error)
     }

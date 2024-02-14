@@ -4,8 +4,7 @@ import doobie.*
 import doobie.util.log.{ExecFailure, LogEvent, ProcessingFailure, Success}
 import cats.implicits.*
 import cats.effect.*
-import org.typelevel.log4cats.{Logger, SelfAwareStructuredLogger}
-import org.typelevel.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 
 class DoobieLogger[F[_]: Sync](logger: SelfAwareStructuredLogger[F]) extends doobie.util.log.LogHandler[F]:
   override def run(e: doobie.util.log.LogEvent): F[Unit] =

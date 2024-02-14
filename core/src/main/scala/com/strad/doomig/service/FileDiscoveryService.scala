@@ -52,7 +52,10 @@ object FileDiscoveryService:
     direction: Direction
   )(p: Svc.Migration) =
     (lastRanMigration, destinationVersion) match
-      case (None, None) => true
+      case (None, None) =>
+        direction match
+          case Down => false
+          case Up   => true
       case (Some(dbVersion), Some(expectedVersion)) =>
         direction match
           case Down =>
