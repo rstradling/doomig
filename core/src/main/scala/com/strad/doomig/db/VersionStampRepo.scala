@@ -1,6 +1,7 @@
 package com.strad.doomig.db
 
 import com.strad.doomig.domain.{Dao, Svc}
+import com.strad.doomig.service.Migrator.Direction
 
 trait VersionStampRepo[F[_]]:
   def doesTableExist(tableName: String): F[Boolean]

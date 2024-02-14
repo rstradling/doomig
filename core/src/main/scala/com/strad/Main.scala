@@ -46,7 +46,10 @@ object Main extends IOApp:
             direction
           )
       )
-      res <- Resource.eval(MigratorFileService.run(db, repo, tableName, conf.folder.toOption.get, migrationFiles))
+      res <- MigratorFileService.run(db, repo, tableName, conf.folder.toOption.get, migrationFiles)
     yield res
-    // TODO: Send back better error code
-    ret.use { x => IO.pure(ExitCode.Success) }
+    ret.use { x =>
+      val ok = x.filter(_ != 0).isEmpty
+      if ok then IO.pure(ExitCode.Success)
+      else IO.pure(ExitCode.Error)
+    }

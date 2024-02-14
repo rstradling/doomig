@@ -3,7 +3,8 @@ package com.strad.doomig.db
 import cats.*
 import cats.effect.*
 import cats.implicits.*
-import com.strad.doomig.domain.{Svc, Dao}
+import com.strad.doomig.domain.{Dao, Svc}
+import com.strad.doomig.service.Migrator.Direction
 import doobie.*
 import doobie.implicits.*
 import doobie.postgres.implicits.*
@@ -45,7 +46,8 @@ object VersionStampDbRepo:
         exists.flatMap { e =>
           if e then
             val select = fr"""SELECT version, name, description, modified_date FROM""" ++ Fragment.const(tableName)
-            select
+            val orderBy = fr"""ORDER BY version DESC LIMIT 1"""
+            (select ++ orderBy)
               .query[Dao.Migration]
               .option
               .transact(db)
