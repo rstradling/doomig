@@ -10,7 +10,10 @@ import com.strad.doomig.domain.Svc
 import com.strad.doomig.service.{FileDiscoveryService, MigratorFileService}
 import com.strad.doomig.service.Migrator.Direction
 import com.strad.doomig.domain.DomainHelpers.toSvc
+import com.strad.doomig.logging.DoobieLogger
+import doobie.LogHandler
 import fs2.io.file.Path
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 object Main extends IOApp:
 
@@ -30,9 +33,10 @@ object Main extends IOApp:
         FileDiscoveryService.UpRegEx
       case Direction.Down =>
         FileDiscoveryService.DownRegEx
-
     val ret = for
-      db <- Db.mkDbConnection(dbConfig)
+      logger <- Resource.eval(Slf4jLogger.create[IO])
+      doobieLogger = new DoobieLogger[IO](logger)
+      db <- Db.mkDbConnection(dbConfig, doobieLogger.some)
       repo = VersionStampDbRepo(db)
       _ <- Resource.eval(repo.createTableIfNotExist(tableName))
       latestVersion <- Resource.eval(repo.fetchCurrentVersion(tableName))

@@ -6,12 +6,12 @@ import cats.effect.kernel.Resource
 import cats.implicits.*
 import com.strad.doomig.db.VersionStampRepo
 import com.strad.doomig.domain.Svc
+import com.strad.doomig.logging.DoobieLogger
 import com.strad.doomig.service.Migrator.Direction
 import com.strad.doomig.service.Migrator.Direction.{Down, Up}
 import doobie.implicits.*
 import doobie.util.fragment.Fragment
 import doobie.util.transactor.Transactor
-
 import scala.io.BufferedSource
 
 object MigratorFileService:

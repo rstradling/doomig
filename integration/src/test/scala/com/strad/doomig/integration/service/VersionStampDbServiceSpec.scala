@@ -20,7 +20,7 @@ class VersionStampDbServiceSpec extends CatsEffectSuite:
       yield res).allocated.unsafeRunSync()._1
 
     val repo = Db
-      .getConnectionFromEnv()
+      .getConnectionFromEnv(None)
       .map(VersionStampDbRepo[IO](_))
       .allocated
       .unsafeRunSync()
@@ -30,8 +30,10 @@ class VersionStampDbServiceSpec extends CatsEffectSuite:
     assertEquals(run(tableName)(repo.createTableIfNotExist), 0)
     assertEquals(run(tableName)(repo.doesTableExist), true)
     val migration = Svc.Migration("100", "Testing", "Testing code")
+    val migration2 = Svc.Migration("101", "Testing", "Testing code")
     assertEquals(run2[Int](tableName, migration)(repo.writeVersion), 1)
+    assertEquals(run2[Int](tableName, migration2)(repo.writeVersion), 1)
     val currentVersion = run(tableName)(repo.fetchCurrentVersion)
     assertEquals(currentVersion.map(_.toSvc), migration.some)
-  // assertEquals(run(tableName)(repo.dropTableIfExists), 0)
-  // assertEquals(run(tableName)(repo.fetchCurrentVersion), None)
+    assertEquals(run(tableName)(repo.dropTableIfExists), 0)
+    assertEquals(run(tableName)(repo.fetchCurrentVersion), None)

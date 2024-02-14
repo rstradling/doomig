@@ -39,6 +39,7 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= Seq(
       // "core" module - IO, IOApp, schedulers
       // This pulls in the kernel and std modules automatically.
+      "ch.qos.logback" % "logback-classic" % "1.1.2",
       "org.typelevel" %% "cats-effect" % catsEffectVersion,
       // concurrency abstractions and primitives (Concurrent, Sync, Async etc.)
       "org.typelevel" %% "cats-effect-kernel" % catsEffectVersion,
@@ -47,10 +48,10 @@ lazy val core = (project in file("core"))
       "org.tpolecat" %% "doobie-core" % doobieVersion,
       "org.tpolecat" %% "doobie-hikari" % doobieVersion,
       "org.tpolecat" %% "doobie-postgres" % doobieVersion,
-      "io.laserdisc" %% "log-effect-fs2" % loggingVersion,
       "co.fs2" %% "fs2-core" % "3.9.4",
       "co.fs2" %% "fs2-io" % "3.9.4",
-      "org.log4s" %% "log4s" % "1.10.0",
+      "org.typelevel" %% "log4cats-core" % "2.6.0",
+      "org.typelevel" %% "log4cats-slf4j" % "2.6.0",
       "org.rogach" %% "scallop" % "5.0.1"
     )
   )

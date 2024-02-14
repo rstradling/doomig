@@ -2,7 +2,6 @@ package com.strad.doomig.service
 
 import cats.*
 import cats.implicits.*
-import cats.syntax.*
 import cats.effect.Async
 import com.strad.doomig.domain.Svc
 import com.strad.doomig.service.Migrator.Direction
@@ -10,13 +9,13 @@ import com.strad.doomig.service.Migrator.Direction.{Down, Up}
 import fs2.io.file.{Files, Path}
 
 import java.time.Instant
-import scala.util.matching.compat.Regex
+import scala.util.matching.Regex
 
 object FileDiscoveryService:
   val UpRegEx: Regex = """(?<version>\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2})_up-(?<desc>.*)\.sql""".r
   val DownRegEx: Regex = """(?<version>\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2})_down-(?<desc>.*)\.sql""".r
 
-  def createMigrationFilesList[F[_]: Files: Async](
+  def createMigrationFilesList[F[_]: Files: Async: MonadThrow](
     path: Path,
     regex: Regex,
     lastRanMigration: Option[Svc.Migration],
@@ -36,11 +35,7 @@ object FileDiscoveryService:
             val desc = a.group("desc")
             Svc.Migration(version, fileName, desc)
           case None =>
-            // TODO: Raise error vs throwing error
-            throw new RuntimeException("")
-          /*Async[F].raiseError(
-              new RuntimeException("We have filtered all the values already so this should always match")
-            )*/
+            throw new RuntimeException("We have filtered all the values already so this should always match")
       }
       .filter(window)
       .compile

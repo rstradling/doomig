@@ -1,22 +1,33 @@
 package com.strad.doomig.db
 
+import cats.*
+import cats.implicits.*
 import cats.effect.{IO, Resource}
-import doobie.Transactor
+import com.strad.doomig.logging.DoobieLogger
+import doobie.{LogHandler, Transactor}
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 
 object Db:
   def mkDbConnection(
-    dbConfig: DbConfig
+    dbConfig: DbConfig,
+    logHandler: Option[LogHandler[IO]]
   ): Resource[IO, Transactor[IO]] =
     for
       ce <- ExecutionContexts.fixedThreadPool[IO](5)
       xa <- HikariTransactor
-        .newHikariTransactor[IO]("org.postgresql.Driver", dbConfig.url, dbConfig.user, dbConfig.password, ce)
+        .newHikariTransactor[IO](
+          "org.postgresql.Driver",
+          dbConfig.url,
+          dbConfig.user,
+          dbConfig.password,
+          ce,
+          logHandler
+        )
     yield xa
-  def getConnectionFromEnv(): Resource[IO, Transactor[IO]] =
+  def getConnectionFromEnv(logHandler: Option[LogHandler[IO]]): Resource[IO, Transactor[IO]] =
     val url = sys.env.get("DB_URL").getOrElse(throw new RuntimeException("Must specify DB_URL"))
     val user = sys.env.get("DB_USER").getOrElse(throw new RuntimeException("Must specify DB_USER"))
     val password = sys.env.get("DB_PASSWORD").getOrElse(throw new RuntimeException("Must specify DB_PASSWORD"))
     val dbDriver = sys.env.get("DB_DRIVER").getOrElse(throw new RuntimeException("Must specify DB_DRIVER"))
-    mkDbConnection(DbConfig(dbDriver, url, user, password))
+    mkDbConnection(DbConfig(dbDriver, url, user, password), logHandler)
