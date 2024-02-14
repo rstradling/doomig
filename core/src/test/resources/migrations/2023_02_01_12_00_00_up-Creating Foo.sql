@@ -1,3 +1,7 @@
 CREATE TABLE foo(
     foo_id SERIAL PRIMARY KEY
 );
+
+CREATE TABLE zed(
+    zed_id SERIAL PRIMARY KEY
+);

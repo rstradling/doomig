@@ -46,7 +46,7 @@ object Main extends IOApp:
             direction
           )
       )
-      res <- MigratorFileService.run(db, repo, tableName, conf.folder.toOption.get, migrationFiles)
+      res <- MigratorFileService.run(db, repo, tableName, conf.folder.toOption.get, migrationFiles, direction)
     yield res
     ret.use { x =>
       val ok = x.filter(_ != 0).isEmpty

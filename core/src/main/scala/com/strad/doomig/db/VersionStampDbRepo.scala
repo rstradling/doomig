@@ -59,3 +59,9 @@ object VersionStampDbRepo:
         val v =
           fr"""VALUES (${migration.version}, ${migration.name}, ${migration.description}, ${Instant.now});"""
         (s ++ v).update.run.transact(db)
+
+      override def deleteVersion(tableName: String, version: String): F[Int] =
+        val s = fr"""DELETE FROM""" ++ Fragment.const(tableName)
+        val where = fr"""WHERE version=${version}"""
+        (s ++ where).update.run.transact(db)
+end VersionStampDbRepo

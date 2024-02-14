@@ -6,6 +6,8 @@ import cats.effect.kernel.Resource
 import cats.implicits.*
 import com.strad.doomig.db.VersionStampRepo
 import com.strad.doomig.domain.Svc
+import com.strad.doomig.service.Migrator.Direction
+import com.strad.doomig.service.Migrator.Direction.{Down, Up}
 import doobie.implicits.*
 import doobie.util.fragment.Fragment
 import doobie.util.transactor.Transactor
@@ -18,8 +20,9 @@ object MigratorFileService:
     db: Transactor[F],
     versionRepo: VersionStampRepo[F],
     tableName: String,
-    dir: String,
-    l: List[Svc.Migration]
+    directory: String,
+    l: List[Svc.Migration],
+    direction: Direction
   )(using
     a: Async[F]
   ): Resource[F, List[Int]] =
@@ -30,9 +33,11 @@ object MigratorFileService:
       yield file.mkString
     l.traverse { x =>
       for
-        sql <- readAll(dir + "/" + x.name)
+        sql <- readAll(directory + "/" + x.name)
         fr = Fragment.const(sql)
         t <- Resource.eval(fr.update.run.transact(db))
-        res <- Resource.eval(versionRepo.writeVersion(tableName, x))
+        res <- direction match
+          case Up   => Resource.eval(versionRepo.writeVersion(tableName, x))
+          case Down => Resource.eval(versionRepo.deleteVersion(tableName, x.version))
       yield res
     }

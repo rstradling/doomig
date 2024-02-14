@@ -1,1 +1,3 @@
 DROP TABLE foo;
+
+DROP TABLE zed;
