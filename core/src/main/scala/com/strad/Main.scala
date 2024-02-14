@@ -50,10 +50,13 @@ object Main extends IOApp:
             direction
           )
       )
+      _ <- Resource.eval(logger.info("Will run the following migrations"))
+      _ <- Resource.eval(IO.delay(println("Will run the following migrations")))
       _ <- Resource.eval(
-        migrationFiles.traverse(x =>
-          logger.info(s"will run the following migrations version: ${x.version} name: ${x.name}")
-        )
+        migrationFiles.traverse(x => logger.info(s"   version: ${x.version} name: ${x.name}"))
+      )
+      _ <- Resource.eval(
+        migrationFiles.traverse(x => IO.delay(println(s"   version: ${x.version} name: ${x.name}")))
       )
       res <- MigratorFileService.run(db, repo, tableName, conf.folder.toOption.get, migrationFiles, direction)
     yield res
@@ -62,3 +65,4 @@ object Main extends IOApp:
       if ok then IO.pure(ExitCode.Success)
       else IO.pure(ExitCode.Error)
     }
+end Main
