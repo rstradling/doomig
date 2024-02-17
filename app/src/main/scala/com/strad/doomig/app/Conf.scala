@@ -20,16 +20,33 @@ class Conf(arguments: List[String]) extends ScallopConf(arguments):
   implicit val regexConverter: ValueConverter[Regex] = singleArgConverter[Regex] { s =>
     new Regex(s)
   }
-  val direction: ScallopOption[Migrator.Direction] = trailArg[Migrator.Direction](required = true)(directionConverter)
-  val sourceFolder: ScallopOption[String] = opt[String](required = true)
-  val destinationVersion: ScallopOption[String] = opt[String](required = false)
-  val dbTableName: ScallopOption[String] = opt[String](required = true, default = "doomig_version".some)
-  val dbUrl: ScallopOption[String] = opt[String](required = true)
-  val dbUser: ScallopOption[String] = opt[String](required = true)
-  val dbPassword: ScallopOption[String] = opt[String](required = true)
-  val dbDriver: ScallopOption[String] = opt[String](required = true, default = "org.postgresql.Driver".some)
-  val dryRun: ScallopOption[Boolean] = opt[Boolean](required = false, default = true.some)
-  val fileRegex: ScallopOption[Regex] = opt[Regex](required = false, default = getDefaultRegEx())
+  private val directionDesc = "up or down; direction of the migration"
+  private val folderDesc = "The directory to use to find the files.  Does not do it recursively"
+  private val versionDesc = "Specifies the version to go up to or down to"
+  private val dryRunDesc =
+    "Will not actually run the schema updates but will check to make sure they syntax check.  This requires a db connection"
+  private val fileRegexDesc =
+    "Regex that MUST contain a group name called version and desc.  It also MUST match the direction"
+  private val dbDriverDesc = "Database driver to use.  Right now only supports org.postgresql.Driver"
+  val direction: ScallopOption[Migrator.Direction] =
+    trailArg[Migrator.Direction](required = true, descr = directionDesc)(directionConverter)
+  val sourceFolder: ScallopOption[String] = opt[String](required = true, short = 'f', descr = folderDesc)
+  val destinationVersion: ScallopOption[String] = opt[String](required = false, short = 'v', descr = versionDesc)
+  val dbTableName: ScallopOption[String] = opt[String](
+    required = false,
+    default = "doomig_version".some,
+    short = 't',
+    descr = "Table name of the migration state"
+  )
+  val dbUrl: ScallopOption[String] = opt[String](required = true, short = 'l', descr = "Database jdbc url")
+  val dbUser: ScallopOption[String] = opt[String](required = true, short = 'u', descr = "user")
+  val dbPassword: ScallopOption[String] = opt[String](required = true, short = 'p', descr = "password")
+  val dbDriver: ScallopOption[String] =
+    opt[String](required = false, default = "org.postgresql.Driver".some, short = 's', descr = dbDriverDesc)
+  val dryRun: ScallopOption[Boolean] =
+    opt[Boolean](required = false, default = true.some, short = 'd', descr = dryRunDesc)
+  val fileRegex: ScallopOption[Regex] =
+    opt[Regex](required = false, default = getDefaultRegEx(), short = 'r', descr = fileRegexDesc)
   verify()
 
   def getDefaultRegEx(): Option[Regex] =
