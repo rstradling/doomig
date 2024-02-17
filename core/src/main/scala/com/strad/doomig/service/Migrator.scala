@@ -4,7 +4,7 @@ import cats.*
 import cats.effect.*
 import cats.implicits.*
 import com.strad.doomig.config.MigratorConfig
-import com.strad.doomig.db.{Db, DbConfig, VersionStampDbRepo}
+import com.strad.doomig.db.{Db, DbConfig, VersionStampPostgresRepo, VersionStampRepo}
 import com.strad.doomig.domain.DomainHelpers.toSvc
 import com.strad.doomig.logging.DoobieLogger
 import fs2.io.file.Path
@@ -23,7 +23,7 @@ object Migrator:
       logger <- Resource.eval(logger)
       doobieLogger = new DoobieLogger[IO](logger)
       db <- Db.mkDbConnection(dbConfig, doobieLogger.some)
-      repo = VersionStampDbRepo(db)
+      repo = VersionStampRepo(dbConfig.driver, db)
       _ <- Resource.eval(repo.createTableIfNotExist(migratorConfig.tableName))
       latestVersion <- Resource.eval(repo.fetchCurrentVersion(migratorConfig.tableName))
       migrationFiles <- Resource.eval(

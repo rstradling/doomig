@@ -21,7 +21,7 @@ class VersionStampDbServiceSpec extends CatsEffectSuite:
 
     val repo = Db
       .getConnectionFromEnv(None)
-      .map(VersionStampDbRepo[IO](_))
+      .map(VersionStampPostgresRepo[IO](_))
       .allocated
       .unsafeRunSync()
       ._1

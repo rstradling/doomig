@@ -11,7 +11,7 @@ import doobie.util.transactor.Transactor
 
 import java.time.Instant
 
-object VersionStampDbRepo:
+object VersionStampPostgresRepo:
   def apply[F[_]: Async](db: Transactor[F]): VersionStampRepo[F] =
     new VersionStampRepo[F]:
       override def doesTableExist(tableName: String): F[Boolean] =
@@ -63,4 +63,4 @@ object VersionStampDbRepo:
         val s = fr"""DELETE FROM""" ++ Fragment.const(tableName)
         val where = fr"""WHERE version=${version}"""
         (s ++ where).update.run.transact(db)
-end VersionStampDbRepo
+end VersionStampPostgresRepo
