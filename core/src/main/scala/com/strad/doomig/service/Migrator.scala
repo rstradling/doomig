@@ -1,18 +1,14 @@
 package com.strad.doomig.service
 
 import cats.*
-import cats.implicits.*
 import cats.effect.*
+import cats.implicits.*
 import com.strad.doomig.config.MigratorConfig
 import com.strad.doomig.db.{Db, DbConfig, VersionStampDbRepo}
 import com.strad.doomig.domain.DomainHelpers.toSvc
 import com.strad.doomig.logging.DoobieLogger
-import com.strad.doomig.service.Migrator.Direction
 import fs2.io.file.Path
 import org.typelevel.log4cats.SelfAwareStructuredLogger
-
-import scala.util.matching.Regex
-
 
 object Migrator:
   enum Direction:
@@ -41,12 +37,8 @@ object Migrator:
           )
       )
       _ <- Resource.eval(logger.info("Will run the following migrations"))
-      _ <- Resource.eval(IO.delay(println("Will run the following migrations")))
       _ <- Resource.eval(
         migrationFiles.traverse(x => logger.info(s"   version: ${x.version} name: ${x.name}"))
-      )
-      _ <- Resource.eval(
-        migrationFiles.traverse(x => IO.delay(println(s"   version: ${x.version} name: ${x.name}")))
       )
       res <- MigratorFileService.run(
         db,

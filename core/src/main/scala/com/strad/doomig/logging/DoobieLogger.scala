@@ -1,9 +1,9 @@
 package com.strad.doomig.logging
 
+import cats.effect.*
+import cats.implicits.*
 import doobie.*
 import doobie.util.log.{ExecFailure, LogEvent, ProcessingFailure, Success}
-import cats.implicits.*
-import cats.effect.*
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 
 class DoobieLogger[F[_]: Sync](logger: SelfAwareStructuredLogger[F]) extends doobie.util.log.LogHandler[F]:

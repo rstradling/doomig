@@ -9,6 +9,7 @@
 # see also test/files/.gitignore
 #
 
+*.log
 .run/
 .DS_Store
 #

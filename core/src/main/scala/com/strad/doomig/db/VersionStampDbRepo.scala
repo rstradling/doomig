@@ -4,12 +4,10 @@ import cats.*
 import cats.effect.*
 import cats.implicits.*
 import com.strad.doomig.domain.{Dao, Svc}
-import com.strad.doomig.service.Migrator.Direction
 import doobie.*
 import doobie.implicits.*
 import doobie.postgres.implicits.*
 import doobie.util.transactor.Transactor
-import org.typelevel.log4cats.Logger
 
 import java.time.Instant
 

@@ -1,7 +1,5 @@
 package com.strad.doomig.domain
 
-import doobie.Update0
-
 import java.time.Instant
 
 object Svc:

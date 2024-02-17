@@ -1,8 +1,8 @@
 package com.strad.doomig.service
 
 import cats.*
-import cats.implicits.*
 import cats.effect.Async
+import cats.implicits.*
 import com.strad.doomig.domain.Svc
 import com.strad.doomig.service.Migrator.Direction
 import com.strad.doomig.service.Migrator.Direction.{Down, Up}

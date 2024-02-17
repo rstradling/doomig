@@ -1,8 +1,7 @@
-package com.strad
+package com.strad.doomig.app
 
 import cats.*
 import cats.implicits.*
-import cats.syntax.*
 import com.strad.doomig.config.MigratorConfig
 import com.strad.doomig.db.DbConfig
 import com.strad.doomig.service.Migrator.Direction

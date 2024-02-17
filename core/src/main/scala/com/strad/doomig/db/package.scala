@@ -1,12 +1,12 @@
 package com.strad.doomig.db
 
 import cats.*
-import cats.implicits.*
 import cats.effect.{IO, Resource}
+import cats.implicits.*
 import com.strad.doomig.logging.DoobieLogger
-import doobie.{LogHandler, Transactor}
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
+import doobie.{LogHandler, Transactor}
 
 object Db:
   def mkDbConnection(

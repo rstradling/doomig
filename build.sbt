@@ -8,7 +8,7 @@ val doobieVersion = "1.0.0-RC5"
 val loggingVersion = "0.19.0"
 
 lazy val root = (project in file("."))
-  .aggregate(core, integration)
+  .aggregate(core, integration, app)
 
 lazy val commonSettings = Seq(
   // build.sbt, for Scala 3 project
@@ -30,10 +30,16 @@ lazy val commonTestSettings = Seq(
   )
 )
 
+lazy val app = (project in file("app"))
+  .dependsOn(core)
+  .settings(
+    name := "doomig-app",
+    commonSettings
+  )
+
 lazy val core = (project in file("core"))
   .settings(
-    name := "doomig",
-    scalaVersion := "3.3.1",
+    name := "doomig-core",
     commonTestSettings,
     commonSettings,
     libraryDependencies ++= Seq(
@@ -59,7 +65,7 @@ lazy val core = (project in file("core"))
 lazy val integration = (project in file("integration"))
   .dependsOn(core)
   .settings(
-    name := "integration",
+    name := "doomig-integration",
     publish / skip := true,
     commonSettings,
     commonTestSettings
