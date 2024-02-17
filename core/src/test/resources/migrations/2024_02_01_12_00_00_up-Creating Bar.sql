@@ -1,0 +1,3 @@
+CREATE TABLE bar (
+    bar_id SERIAL PRIMARY KEY
+);

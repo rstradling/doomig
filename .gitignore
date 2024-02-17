@@ -9,6 +9,8 @@
 # see also test/files/.gitignore
 #
 
+*.log
+.run/
 .DS_Store
 #
 # JARs aren't checked in, they are fetched by sbt
@@ -49,7 +51,7 @@
 /qbin
 
 # sbt's target directories
-/target/
+**/target/
 /project/**/target/
 /test/macro-annot/target/
 /test/files/target/
