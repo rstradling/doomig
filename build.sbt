@@ -24,7 +24,6 @@ lazy val commonSettings = Seq(
 )
 lazy val commonTestSettings = Seq(
   libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-effect-testing-specs2" % "1.4.0" % "test",
     "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % "test",
     "org.tpolecat" %% "doobie-munit" % doobieVersion % "test"
   )
@@ -54,8 +53,6 @@ lazy val core = (project in file("core"))
       "org.tpolecat" %% "doobie-core" % doobieVersion,
       "org.tpolecat" %% "doobie-hikari" % doobieVersion,
       "org.tpolecat" %% "doobie-postgres" % doobieVersion,
-      "co.fs2" %% "fs2-core" % "3.9.4",
-      "co.fs2" %% "fs2-io" % "3.9.4",
       "org.typelevel" %% "log4cats-core" % "2.6.0",
       "org.typelevel" %% "log4cats-slf4j" % "2.6.0",
       "org.rogach" %% "scallop" % "5.0.1"

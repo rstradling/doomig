@@ -34,6 +34,6 @@ class VersionStampDbServiceSpec extends CatsEffectSuite:
     assertEquals(run2[Int](tableName, migration)(repo.writeVersion), 1)
     assertEquals(run2[Int](tableName, migration2)(repo.writeVersion), 1)
     val currentVersion = run(tableName)(repo.fetchCurrentVersion)
-    assertEquals(currentVersion.map(_.toSvc), migration.some)
+    assertEquals(currentVersion.map(_.toSvc), migration2.some)
     assertEquals(run(tableName)(repo.dropTableIfExists), 0)
     assertEquals(run(tableName)(repo.fetchCurrentVersion), None)

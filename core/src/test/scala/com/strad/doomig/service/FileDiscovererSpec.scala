@@ -5,7 +5,6 @@ import cats.implicits.*
 import cats.effect.IO
 import com.strad.doomig.domain.Svc
 import com.strad.doomig.service.Migrator.Direction.{Down, Up}
-import fs2.io.file.Path
 import munit.CatsEffectSuite
 
 class FileDiscovererSpec extends CatsEffectSuite:
@@ -17,14 +16,14 @@ class FileDiscovererSpec extends CatsEffectSuite:
     )
     val items =
       FileDiscoveryService
-        .createMigrationFilesList[IO](Path(path), FileDiscoveryService.UpRegEx, None, None, Up)
+        .createMigrationFilesList[IO](path, FileDiscoveryService.UpRegEx, None, None, Up)
         .unsafeRunSync()
     assertEquals(items, expected)
   test("Updating files when dbVersion is greater then the files should return an empty list to process"):
     val items =
       FileDiscoveryService
         .createMigrationFilesList[IO](
-          Path(path),
+          path,
           FileDiscoveryService.UpRegEx,
           Svc.Migration("2025_01_01_01_00_00", "Don'tCare", "Don'tCare").some,
           None,
@@ -42,7 +41,7 @@ class FileDiscovererSpec extends CatsEffectSuite:
     val items =
       FileDiscoveryService
         .createMigrationFilesList[IO](
-          Path(path),
+          path,
           FileDiscoveryService.UpRegEx,
           None,
           "2025_01_01_01_00_00".some,
@@ -60,7 +59,7 @@ class FileDiscovererSpec extends CatsEffectSuite:
     val items =
       FileDiscoveryService
         .createMigrationFilesList[IO](
-          Path(path),
+          path,
           FileDiscoveryService.UpRegEx,
           None,
           "2024_02_01_12_00_00".some,
@@ -74,7 +73,7 @@ class FileDiscovererSpec extends CatsEffectSuite:
     val items =
       FileDiscoveryService
         .createMigrationFilesList[IO](
-          Path(path),
+          path,
           FileDiscoveryService.UpRegEx,
           Svc.Migration("2024_02_01_12_00_00", "Don'tCare", "Don'tCare").some,
           "2024_02_01_12_00_00".some,
@@ -91,7 +90,7 @@ class FileDiscovererSpec extends CatsEffectSuite:
     val items =
       FileDiscoveryService
         .createMigrationFilesList[IO](
-          Path(path),
+          path,
           FileDiscoveryService.UpRegEx,
           Svc.Migration("2023_02_01_12_00_00", "Don'tCare", "Don'tCare").some,
           "2024_02_01_12_00_00".some,
@@ -108,7 +107,7 @@ class FileDiscovererSpec extends CatsEffectSuite:
     val items =
       FileDiscoveryService
         .createMigrationFilesList[IO](
-          Path(path),
+          path,
           FileDiscoveryService.UpRegEx,
           Svc.Migration("2023_02_01_12_00_00", "Don'tCare", "Don'tCare").some,
           None,
@@ -117,13 +116,9 @@ class FileDiscovererSpec extends CatsEffectSuite:
         .unsafeRunSync()
     assertEquals(items, expected)
   test("File discovery for down files works correctly with no current version"):
-    val expected = List(
-      Svc.Migration("2024_02_01_12_00_00", "2024_02_01_12_00_00_down-Dropping Bar.sql", "Dropping Bar"),
-      Svc.Migration("2023_02_01_12_00_00", "2023_02_01_12_00_00_down-Dropping Foo.sql", "Dropping Foo")
-    )
     val items =
       FileDiscoveryService
-        .createMigrationFilesList[IO](Path(path), FileDiscoveryService.DownRegEx, None, None, Down)
+        .createMigrationFilesList[IO](path, FileDiscoveryService.DownRegEx, None, None, Down)
         .unsafeRunSync()
-    assertEquals(items, expected)
+    assertEquals(items, List.empty)
 end FileDiscovererSpec

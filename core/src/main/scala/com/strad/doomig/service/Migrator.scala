@@ -4,10 +4,9 @@ import cats.*
 import cats.effect.*
 import cats.implicits.*
 import com.strad.doomig.config.MigratorConfig
-import com.strad.doomig.db.{Db, DbConfig, VersionStampPostgresRepo, VersionStampRepo}
+import com.strad.doomig.db.{Db, DbConfig, VersionStampRepo}
 import com.strad.doomig.domain.DomainHelpers.toSvc
 import com.strad.doomig.logging.DoobieLogger
-import fs2.io.file.Path
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 
 object Migrator:
@@ -29,7 +28,7 @@ object Migrator:
       migrationFiles <- Resource.eval(
         FileDiscoveryService
           .createMigrationFilesList[IO](
-            Path(migratorConfig.sourceFolder),
+            migratorConfig.sourceFolder,
             migratorConfig.fileRegex,
             latestVersion.map(_.toSvc),
             migratorConfig.destinationVersion,

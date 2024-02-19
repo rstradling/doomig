@@ -6,39 +6,38 @@ import cats.implicits.*
 import com.strad.doomig.domain.Svc
 import com.strad.doomig.service.Migrator.Direction
 import com.strad.doomig.service.Migrator.Direction.{Down, Up}
-import fs2.io.file.{Files, Path}
-
+import com.strad.doomig.treewalker.FileTreeWalker
 import scala.util.matching.Regex
 
 object FileDiscoveryService:
   val UpRegEx: Regex = """(?<version>\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2})_up-(?<desc>.*)\.sql""".r
   val DownRegEx: Regex = """(?<version>\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2})_down-(?<desc>.*)\.sql""".r
 
-  def createMigrationFilesList[F[_]: Files: Async: MonadThrow](
-    path: Path,
+  def createMigrationFilesList[F[_]: Async: MonadThrow](
+    path: String,
     regex: Regex,
     lastRanMigration: Option[Svc.Migration],
     destinationVersion: Option[String],
     direction: Direction
   ): F[List[Svc.Migration]] =
-    val filter = regexFilter(regex)
+    val treeWalker = new FileTreeWalker[F]()
     val window = lastRunFilter(lastRanMigration, destinationVersion, direction)
-    val v = Files[F]
-      .walk(path)
-      .filter(filter)
+    val v: F[List[Svc.Migration]] = treeWalker
+      .list(path)
+      .map(x => x.filter(y => regexFilter(regex)(y)))
       .map { x =>
-        val fileName = x.names.last.toString
-        regex.findFirstMatchIn(fileName) match
-          case Some(a) =>
-            val version = a.group("version")
-            val desc = a.group("desc")
-            Svc.Migration(version, fileName, desc)
-          case None =>
-            throw new RuntimeException("We have filtered all the values already so this should always match")
+        x.map { y =>
+          val fileName = (new java.io.File(y)).getName
+          regex.findFirstMatchIn(fileName) match
+            case Some(a) =>
+              val version = a.group("version")
+              val desc = a.group("desc")
+              Svc.Migration(version, fileName, desc)
+            case None =>
+              throw new RuntimeException("We have filtered all the values already so this should always match")
+        }
       }
-      .filter(window)
-      .compile
-      .toVector
+      .map(x => x.filter(y => window(y)))
     v.map(items =>
       direction match
         case Down => items.sortWith(_.version > _.version).toList
@@ -79,8 +78,8 @@ object FileDiscoveryService:
           case Up =>
             if p.version <= expectedVersion then true
             else false
-  private def regexFilter(regex: Regex)(p: Path) =
-    val fileName = p.names.last.toString
+  private def regexFilter(regex: Regex)(p: String) =
+    val fileName = p
     regex.findFirstMatchIn(fileName) match
       case Some(_) => true
       case None    => false
