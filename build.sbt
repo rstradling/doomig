@@ -1,6 +1,6 @@
 import sbt.*
 
-ThisBuild / organization := "com.strad"
+ThisBuild / organization := "org.stradsw"
 ThisBuild / scalaVersion := "3.3.1"
 ThisBuild / versionScheme := Some("semver-spec")
 val catsEffectVersion = "3.5.2"
