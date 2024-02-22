@@ -25,10 +25,11 @@ ThisBuild / releaseProcess := Seq[ReleaseStep](
 )
 // format: off
 ThisBuild / publishTo := {
-  val nexus = "https://oss.sonatype.org"
-  if (isSnapshot.value) Some("snapshots".at(nexus + "content/repositories/snapshots"))
-  else Some("releases".at(nexus + "service/local/staging/deploy/maven2"))
+  val nexus = "https://central.sonatype.com/"
+  //if (isSnapshot.value) Some("snapshots".at(nexus + "content/repositories/snapshots"))
+  /*else*/ Some("releases".at(nexus))// + "service/local/staging/deploy/maven2"))
 }
+ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
 // format: on
 ThisBuild / licenses := Seq("Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 ThisBuild / scmInfo := Some(
