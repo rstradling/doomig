@@ -4,7 +4,6 @@ import sbtrelease.ReleaseStateTransformations.*
 ThisBuild / organization := "org.stradsw"
 ThisBuild / scalaVersion := "3.3.1"
 ThisBuild / versionScheme := Some("semver-spec")
-ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
 ThisBuild / publishMavenStyle := true
 ThisBuild / publishArtifact / test := false
 ThisBuild / pomIncludeRepository := { _ => false }
@@ -25,9 +24,10 @@ ThisBuild / releaseProcess := Seq[ReleaseStep](
 )
 // format: off
 ThisBuild / publishTo := {
-  val nexus = "https://central.sonatype.com/"
-  //if (isSnapshot.value) Some("snapshots".at(nexus + "content/repositories/snapshots"))
-  /*else*/ Some("releases".at(nexus))// + "service/local/staging/deploy/maven2"))
+  val nexus = "https://central.sonatype.com"
+ // if (isSnapshot.value) Some("snapshots".at(nexus + "content/repositories/snapshots"))
+ // else Some("releases".at(nexus + "service/local/staging/deploy/maven2"))
+  Some("releases".at(nexus))
 }
 ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
 // format: on
