@@ -1,8 +1,46 @@
 import sbt.*
+import sbtrelease.ReleaseStateTransformations.*
 
 ThisBuild / organization := "org.stradsw"
 ThisBuild / scalaVersion := "3.3.1"
 ThisBuild / versionScheme := Some("semver-spec")
+ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
+ThisBuild / publishMavenStyle := true
+ThisBuild / publishArtifact / test := false
+ThisBuild / pomIncludeRepository := { _ => false }
+ThisBuild / homepage := Some(url("https://github.com/rstradling/doomig"))
+ThisBuild / releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  publishArtifacts,
+  setNextVersion,
+  commitNextVersion,
+  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+  pushChanges
+)
+// format: off
+ThisBuild / publishTo := {
+  val nexus = "https://oss.sonatype.org"
+  if (isSnapshot.value) Some("snapshots".at(nexus + "content/repositories/snapshots"))
+  else Some("releases".at(nexus + "service/local/staging/deploy/maven2"))
+}
+// format: on
+ThisBuild / licenses := Seq("Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+ThisBuild / scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/rstradling/doomig"),
+    "scm:git:git@github.com:rstradling/doomig.git"
+  )
+)
+ThisBuild / developers := List(
+  Developer("rstradling", "Ryan Stradling", "ryanstradling@gmail.com", url("http:me.com"))
+)
+
 val catsEffectVersion = "3.5.2"
 val doobieVersion = "1.0.0-RC5"
 val loggingVersion = "0.19.0"
